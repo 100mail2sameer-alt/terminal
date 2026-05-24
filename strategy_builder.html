@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategy Builder</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="dashboard-page">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">kotak</div>
+      <input class="search" type="text" placeholder="Search strategies, assets, or symbols..." />
+      <div class="ticker">
+        <div>NIFTY: {{ nifty_value }} <span class="{{ nifty_tone }}">{{ nifty_change }}</span> | ATM: {{ nifty_atm }}</div>
+        <div>BANKNIFTY: {{ banknifty_value }} <span class="{{ banknifty_tone }}">{{ banknifty_change }}</span> | ATM: {{ banknifty_atm }}</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="nav-item nav-link" href="/home">Dashboard</a>
+        <div class="nav-item active">Strategy Builder</div>
+        <a class="nav-item nav-link" href="/portfolio-analytics">Portfolio & Analytics</a>
+        <div class="nav-item">Historical Performance</div>
+      </aside>
+
+      <main class="content">
+        <div class="title-row">
+          <h1>Strategy Builder</h1>
+          <a class="create-btn create-link" href="/home">Back to Dashboard</a>
+        </div>
+
+        <section class="strategy-builder-section" id="strategyBuilderSection">
+          <article class="strategy strategy-create-tile" id="newStrategyTile" tabindex="0" role="button" aria-label="Create strategy">
+            <div class="plus">+</div>
+            <h3>Create Strategy</h3>
+            <p>Click to add strategy name and description</p>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="strategy-modal" id="strategyModal" aria-hidden="true">
+    <div class="strategy-modal-card">
+      <h3>Create New Strategy</h3>
+      <label for="strategyName">Strategy Name</label>
+      <input id="strategyName" type="text" placeholder="Enter strategy name" />
+      <label for="strategyDesc">Strategy Description</label>
+      <textarea id="strategyDesc" rows="4" placeholder="Enter strategy description"></textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelModalBtn" type="button">Cancel</button>
+        <button class="btn-primary" id="saveModalBtn" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('strategyModal');
+    const tile = document.getElementById('newStrategyTile');
+    const cancelBtn = document.getElementById('cancelModalBtn');
+    const saveBtn = document.getElementById('saveModalBtn');
+
+    function openModal() {
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.getElementById('strategyName').focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    tile.addEventListener('click', openModal);
+    tile.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openModal();
+      }
+    });
+
+
+    saveBtn.addEventListener('click', () => {
+      const strategyName = document.getElementById('strategyName').value.trim();
+      const strategyDescription = document.getElementById('strategyDesc').value.trim();
+      try {
+        localStorage.removeItem('kotak_builder_strategy');
+        localStorage.removeItem('kotak_builder_last_backtest');
+      } catch (_) {}
+      const params = new URLSearchParams();
+      params.set('new', '1');
+      if (strategyName) params.set('strategy_name', strategyName);
+      if (strategyDescription) params.set('strategy_description', strategyDescription);
+      window.location.href = '/backtest-builder' + (params.toString() ? ('?' + params.toString()) : '');
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('open') === '1') {
+      openModal();
+    }
+  </script>
+</body>
+</html>
+

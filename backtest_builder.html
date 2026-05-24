@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backtest Builder</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="dashboard-page builder-page" data-strategy-id="{{ strategy_id or '' }}" data-is-new-strategy="{{ '1' if is_new_strategy else '0' }}">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">kotak</div>
+      <input class="search" type="text" placeholder="Search strategies, assets, or symbols..." />
+      <div class="ticker">
+        <div>NIFTY: {{ nifty_value }} <span class="{{ nifty_tone }}">{{ nifty_change }}</span> | ATM: {{ nifty_atm }}</div>
+        <div>BANKNIFTY: {{ banknifty_value }} <span class="{{ banknifty_tone }}">{{ banknifty_change }}</span> | ATM: {{ banknifty_atm }}</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="nav-item nav-link" href="/home">Dashboard</a>
+        <a class="nav-item nav-link" href="/strategy-builder">Strategy Builder</a>
+        <a class="nav-item nav-link" href="/portfolio-analytics">Portfolio & Analytics</a>
+        <div class="nav-item">Historical Performance</div>
+      </aside>
+
+      <main class="content builder-content">
+        <div class="title-row">
+          <h1 id="strategyTitle">{{ strategy_name or 'Backtest Builder' }}</h1>
+          <a class="create-btn create-link" href="/strategy-builder">Back to Strategy Builder</a>
+        </div>
+        <p class="builder-desc" id="strategyDescription">{{ strategy_description or 'Configure settings and run strategy backtest.' }}</p>
+
+        <section class="builder-grid">
+          <section class="builder-card">
+            <h3>Instrument settings</h3>
+            <div class="field-row">
+              <label>Index</label>
+              <select id="indexSelect"><option>NIFTY</option><option>BANKNIFTY</option><option>SENSEX</option></select>
+            </div>
+            <div class="field-row">
+              <label>Underlying from</label>
+              <div class="segmented" data-group="underlying">
+                <button class="seg active" data-value="Cash" type="button">Cash</button>
+                <button class="seg" data-value="Futures" type="button">Futures</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="builder-card">
+            <h3>Entry settings</h3>
+            <div class="field-row">
+              <label>Strategy Type</label>
+              <div class="segmented" data-group="strategyType">
+                <button class="seg" data-value="Intraday" type="button">Intraday</button>
+                <button class="seg active" data-value="BTST" type="button">BTST</button>
+                <button class="seg" data-value="Positional" type="button">Positional</button>
+              </div>
+            </div>
+            <div class="field-row two-col">
+              <div><label>Entry Time</label><select id="entryTime"><option value="09:15">09:15</option><option value="09:20" selected>09:20</option><option value="09:25">09:25</option><option value="09:30">09:30</option><option value="09:35">09:35</option><option value="09:40">09:40</option><option value="09:45">09:45</option><option value="09:50">09:50</option><option value="09:55">09:55</option><option value="10:00">10:00</option><option value="10:05">10:05</option><option value="10:10">10:10</option><option value="10:15">10:15</option><option value="10:20">10:20</option><option value="10:25">10:25</option><option value="10:30">10:30</option><option value="10:35">10:35</option><option value="10:40">10:40</option><option value="10:45">10:45</option><option value="10:50">10:50</option><option value="10:55">10:55</option><option value="11:00">11:00</option><option value="11:05">11:05</option><option value="11:10">11:10</option><option value="11:15">11:15</option><option value="11:20">11:20</option><option value="11:25">11:25</option><option value="11:30">11:30</option><option value="11:35">11:35</option><option value="11:40">11:40</option><option value="11:45">11:45</option><option value="11:50">11:50</option><option value="11:55">11:55</option><option value="12:00">12:00</option><option value="12:05">12:05</option><option value="12:10">12:10</option><option value="12:15">12:15</option><option value="12:20">12:20</option><option value="12:25">12:25</option><option value="12:30">12:30</option><option value="12:35">12:35</option><option value="12:40">12:40</option><option value="12:45">12:45</option><option value="12:50">12:50</option><option value="12:55">12:55</option><option value="13:00">13:00</option><option value="13:05">13:05</option><option value="13:10">13:10</option><option value="13:15">13:15</option><option value="13:20">13:20</option><option value="13:25">13:25</option><option value="13:30">13:30</option><option value="13:35">13:35</option><option value="13:40">13:40</option><option value="13:45">13:45</option><option value="13:50">13:50</option><option value="13:55">13:55</option><option value="14:00">14:00</option><option value="14:05">14:05</option><option value="14:10">14:10</option><option value="14:15">14:15</option><option value="14:20">14:20</option><option value="14:25">14:25</option><option value="14:30">14:30</option><option value="14:35">14:35</option><option value="14:40">14:40</option><option value="14:45">14:45</option><option value="14:50">14:50</option><option value="14:55">14:55</option><option value="15:00">15:00</option><option value="15:05">15:05</option><option value="15:10">15:10</option><option value="15:15">15:15</option><option value="15:20">15:20</option><option value="15:25">15:25</option><option value="15:30">15:30</option></select></div>
+              <div><label>Exit Time</label><select id="exitTime"><option value="09:15">09:15</option><option value="09:20">09:20</option><option value="09:25" selected>09:25</option><option value="09:30">09:30</option><option value="09:35">09:35</option><option value="09:40">09:40</option><option value="09:45">09:45</option><option value="09:50">09:50</option><option value="09:55">09:55</option><option value="10:00">10:00</option><option value="10:05">10:05</option><option value="10:10">10:10</option><option value="10:15">10:15</option><option value="10:20">10:20</option><option value="10:25">10:25</option><option value="10:30">10:30</option><option value="10:35">10:35</option><option value="10:40">10:40</option><option value="10:45">10:45</option><option value="10:50">10:50</option><option value="10:55">10:55</option><option value="11:00">11:00</option><option value="11:05">11:05</option><option value="11:10">11:10</option><option value="11:15">11:15</option><option value="11:20">11:20</option><option value="11:25">11:25</option><option value="11:30">11:30</option><option value="11:35">11:35</option><option value="11:40">11:40</option><option value="11:45">11:45</option><option value="11:50">11:50</option><option value="11:55">11:55</option><option value="12:00">12:00</option><option value="12:05">12:05</option><option value="12:10">12:10</option><option value="12:15">12:15</option><option value="12:20">12:20</option><option value="12:25">12:25</option><option value="12:30">12:30</option><option value="12:35">12:35</option><option value="12:40">12:40</option><option value="12:45">12:45</option><option value="12:50">12:50</option><option value="12:55">12:55</option><option value="13:00">13:00</option><option value="13:05">13:05</option><option value="13:10">13:10</option><option value="13:15">13:15</option><option value="13:20">13:20</option><option value="13:25">13:25</option><option value="13:30">13:30</option><option value="13:35">13:35</option><option value="13:40">13:40</option><option value="13:45">13:45</option><option value="13:50">13:50</option><option value="13:55">13:55</option><option value="14:00">14:00</option><option value="14:05">14:05</option><option value="14:10">14:10</option><option value="14:15">14:15</option><option value="14:20">14:20</option><option value="14:25">14:25</option><option value="14:30">14:30</option><option value="14:35">14:35</option><option value="14:40">14:40</option><option value="14:45">14:45</option><option value="14:50">14:50</option><option value="14:55">14:55</option><option value="15:00">15:00</option><option value="15:05">15:05</option><option value="15:10">15:10</option><option value="15:15">15:15</option><option value="15:20">15:20</option><option value="15:25">15:25</option><option value="15:30">15:30</option></select></div>
+            </div>
+            <div class="field-row">
+              <label>No Entry After</label>
+              <label class="switch"><input id="noEntryAfterToggle" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="field-row" id="noEntryAfterRow" style="display:none;">
+              <label>No Entry After Time</label>
+              <select id="noEntryAfterTime"><option value="09:15">09:15</option><option value="09:20">09:20</option><option value="09:25">09:25</option><option value="09:30">09:30</option><option value="09:35">09:35</option><option value="09:40">09:40</option><option value="09:45">09:45</option><option value="09:50">09:50</option><option value="09:55">09:55</option><option value="10:00">10:00</option><option value="10:05">10:05</option><option value="10:10">10:10</option><option value="10:15">10:15</option><option value="10:20">10:20</option><option value="10:25">10:25</option><option value="10:30">10:30</option><option value="10:35">10:35</option><option value="10:40">10:40</option><option value="10:45">10:45</option><option value="10:50">10:50</option><option value="10:55">10:55</option><option value="11:00">11:00</option><option value="11:05">11:05</option><option value="11:10">11:10</option><option value="11:15">11:15</option><option value="11:20">11:20</option><option value="11:25">11:25</option><option value="11:30">11:30</option><option value="11:35">11:35</option><option value="11:40">11:40</option><option value="11:45">11:45</option><option value="11:50">11:50</option><option value="11:55">11:55</option><option value="12:00">12:00</option><option value="12:05">12:05</option><option value="12:10">12:10</option><option value="12:15">12:15</option><option value="12:20">12:20</option><option value="12:25">12:25</option><option value="12:30">12:30</option><option value="12:35">12:35</option><option value="12:40">12:40</option><option value="12:45">12:45</option><option value="12:50">12:50</option><option value="12:55">12:55</option><option value="13:00">13:00</option><option value="13:05">13:05</option><option value="13:10">13:10</option><option value="13:15">13:15</option><option value="13:20">13:20</option><option value="13:25">13:25</option><option value="13:30">13:30</option><option value="13:35">13:35</option><option value="13:40">13:40</option><option value="13:45">13:45</option><option value="13:50">13:50</option><option value="13:55">13:55</option><option value="14:00">14:00</option><option value="14:05">14:05</option><option value="14:10">14:10</option><option value="14:15">14:15</option><option value="14:20">14:20</option><option value="14:25">14:25</option><option value="14:30">14:30</option><option value="14:35">14:35</option><option value="14:40">14:40</option><option value="14:45">14:45</option><option value="14:50">14:50</option><option value="14:55">14:55</option><option value="15:00">15:00</option><option value="15:05">15:05</option><option value="15:10">15:10</option><option value="15:15">15:15</option><option value="15:20">15:20</option><option value="15:25">15:25</option><option value="15:30" selected>15:30</option></select>
+            </div>
+            <div class="field-row">
+              <label>Overall Momentum</label>
+              <label class="switch"><input id="overallMomentumToggle" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="field-row" id="overallMomentumRow" style="display:none;">
+              <label>Momentum Filter</label>
+              <div class="momentum-controls">
+                <select id="overallMomentumType">
+                  <option value="Points Up">Points Up</option>
+                  <option value="Points Down">Points Down</option>
+                  <option value="Percent Up">Percent Up</option>
+                  <option value="Percent Down">Percent Down</option>
+                </select>
+                <input id="overallMomentumValue" type="number" step="0.01" min="0" placeholder="Enter value" />
+              </div>
+            </div>
+          </section>
+
+          <section class="builder-card">
+            <h3>Legwise settings</h3>
+            <div class="field-row">
+              <label>Square Off</label>
+              <div class="segmented" data-group="squareOff">
+                <button class="seg active" data-value="Partial" type="button">Partial</button>
+                <button class="seg" data-value="Complete" type="button">Complete</button>
+              </div>
+            </div>
+            <div class="field-row">
+              <label>Trail SL to Break-even</label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="segmented disabled" data-group="trailScope" id="trailScopeGroup">
+                  <button class="seg active" data-value="All Legs" type="button">All Legs</button>
+                  <button class="seg" data-value="SL Legs" type="button">SL Legs</button>
+                </div>
+                <input id="trailSl" type="checkbox" />
+              </div>
+            </div>
+          </section>
+
+          <section class="builder-card full">
+            <h3>Leg Builder</h3>
+            <div class="leg-grid">
+              <div><label>Select segments</label><div class="segmented" data-group="segment"><button class="seg" data-value="Futures" type="button">Futures</button><button class="seg active" data-value="Options" type="button">Options</button></div></div>
+              <div><label>Total Lot</label><input id="totalLot" value="1" type="number" min="1" /></div>
+              <div><label>Position</label><div class="segmented" data-group="position"><button class="seg active" data-value="Buy" type="button">Buy</button><button class="seg" data-value="Sell" type="button">Sell</button></div></div>
+              <div><label>Option Type</label><div class="segmented" data-group="optionType"><button class="seg" data-value="Call" type="button">Call</button><button class="seg active" data-value="Put" type="button">Put</button></div></div>
+              <div><label>Expiry</label><select id="expiry"><option>Weekly</option><option>Monthly</option></select></div>
+              <div><label>Strike Type</label><select id="strikeCriteria"><option selected>Strike Type</option><option>Closest Premium</option><option>Premium &gt;=</option><option>Premium &lt;=</option><option>Premium Range</option><option>% of ATM</option></select></div>
+              <div id="strikeOffsetWrap" style="display:none;"><label>Strike Selection</label><select id="strikeOffsetSelect"></select></div>
+              <div id="closestPremiumWrap" style="display:none;"><label>Closest Premium</label><input id="closestPremiumValue" type="number" min="0" step="0.01" placeholder="Enter premium" /></div>
+              <div id="premiumGeWrap" style="display:none;"><label>Premium &gt;=</label><input id="premiumGeValue" type="number" min="0" step="0.01" placeholder="Enter premium" /></div>
+              <div id="premiumLeWrap" style="display:none;"><label>Premium &lt;=</label><input id="premiumLeValue" type="number" min="0" step="0.01" placeholder="Enter premium" /></div>
+              <div id="premiumRangeLowerWrap" style="display:none;"><label>Lower Premium Range</label><input id="premiumRangeLower" type="number" min="0" step="0.01" placeholder="Lower premium" /></div>
+              <div id="premiumRangeUpperWrap" style="display:none;"><label>Upper Premium Range</label><input id="premiumRangeUpper" type="number" min="0" step="0.01" placeholder="Upper premium" /></div>
+              <div id="percentAtmSignWrap" style="display:none;"><label>% of ATM Direction</label><select id="percentAtmSign"><option value="+">+</option><option value="-">-</option></select></div>
+              <div id="percentAtmValueWrap" style="display:none;"><label>% of ATM Value</label><input id="percentAtmValue" type="number" min="0" step="0.01" placeholder="Enter %" /></div>
+            </div>
+            <div class="builder-actions-row"><button class="btn-primary" id="addLegBtn" type="button">Add Leg</button></div>
+
+            <div class="panel" style="margin-top:10px;">
+              <h3 class="panel-title">Legs</h3>
+              <div id="legsContainer"></div>
+            </div>
+          </section>
+        </section>
+
+        <footer class="builder-bottom-actions">
+          <button class="btn-secondary" id="saveStrategyBtn" type="button">Save Strategy</button>
+          <button class="btn-primary" id="startBacktestBtn" type="button">Start Execution</button>
+          <button class="btn-secondary" id="stopExecutionBtn" type="button">Stop Execution</button>
+          <span id="executionStatusText" class="builder-status-text">Execution: Idle</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script id="initialStrategyPayload" type="application/json">{{ (strategy_payload or None)|tojson }}</script>
+  <script>
+    const initialPayloadNode = document.getElementById('initialStrategyPayload');
+    let initialStrategyPayload = null;
+    try {
+      initialStrategyPayload = JSON.parse(initialPayloadNode?.textContent || 'null');
+    } catch (_) {
+      initialStrategyPayload = null;
+    }
+    const initialStrategyId = document.body.getAttribute('data-strategy-id') || '';
+    const isNewStrategy = (document.body.getAttribute('data-is-new-strategy') || '0') === '1';
+    const state = { legs: [], strategyId: initialStrategyId };
+
+    function activeValue(group) {
+      const active = document.querySelector(`[data-group="${group}"] .seg.active`);
+      return active ? active.dataset.value : "";
+    }
+
+    document.querySelectorAll('.segmented').forEach(group => {
+      group.addEventListener('click', (event) => {
+        const btn = event.target.closest('.seg');
+        if (!btn) return;
+        group.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    function renderLegs() {
+      const container = document.getElementById('legsContainer');
+      container.innerHTML = '';
+
+      state.legs.forEach((leg, idx) => {
+        const strikeCriteriaOptions = [
+          'Strike Type',
+          'Closest Premium',
+          'Premium >=',
+          'Premium <=',
+          'Premium Range',
+          '% of ATM',
+        ];
+        const strikeCriteriaSelectHtml = strikeCriteriaOptions
+          .map((opt) => `<option ${leg.strike===opt?'selected':''}>${opt}</option>`)
+          .join('');
+        const strikeOffsetOptions = ['ATM', ...Array.from({ length: 20 }, (_, i) => `ITM ${i + 1}`), ...Array.from({ length: 20 }, (_, i) => `OTM ${i + 1}`)];
+        const selectedStrikeOffset = leg.strikeSelection || 'ATM';
+        const strikeOffsetSelectHtml = strikeOffsetOptions
+          .map((opt) => `<option ${selectedStrikeOffset===opt?'selected':''}>${opt}</option>`)
+          .join('');
+        const rangeParts = (leg.premiumRange || '-').split('-');
+        const rangeLower = rangeParts[0] && rangeParts[0] !== '-' ? rangeParts[0] : '';
+        const rangeUpper = rangeParts[1] && rangeParts[1] !== '-' ? rangeParts[1] : '';
+        const percentRaw = leg.percentAtm || '';
+        const percentSign = percentRaw.startsWith('-') ? '-' : '+';
+        const percentValue = percentRaw.replace('+', '').replace('-', '');
+
+        const card = document.createElement('div');
+        card.className = 'leg-card';
+        card.innerHTML = `
+          <div class="leg-head">
+            <span class="leg-num"># ${idx + 1}</span>
+            <button type="button" class="btn-secondary" data-remove="${idx}" style="padding:4px 8px;">X</button>
+          </div>
+
+          <div class="leg-primary-row">
+            <div><label>Lots</label><input class="leg-lot" type="number" value="${leg.lot}" /></div>
+            <div><label>Position</label><select class="leg-position"><option ${leg.position==='Buy'?'selected':''}>Buy</option><option ${leg.position==='Sell'?'selected':''}>Sell</option></select></div>
+            <div><label>Option Type</label><select class="leg-option-type"><option ${leg.optionType==='Call'?'selected':''}>Call</option><option ${leg.optionType==='Put'?'selected':''}>Put</option></select></div>
+            <div><label>Expiry</label><select class="leg-expiry"><option ${leg.expiry==='Weekly'?'selected':''}>Weekly</option><option ${leg.expiry==='Monthly'?'selected':''}>Monthly</option></select></div>
+            <div>
+              <label>Strike Criteria</label>
+              <div class="leg-strike-row">
+                <select class="leg-strike-criteria">${strikeCriteriaSelectHtml}</select>
+                <div class="leg-strike-dynamic">
+                  <select class="leg-strike-type" style="${leg.strike==='Strike Type' ? '' : 'display:none;'}">${strikeOffsetSelectHtml}</select>
+                  <input class="leg-closest-premium" style="${leg.strike==='Closest Premium' ? '' : 'display:none;'}" value="${leg.closestPremiumValue || ''}" placeholder="Closest Premium" />
+                  <input class="leg-premium-ge" style="${leg.strike==='Premium >=' ? '' : 'display:none;'}" value="${leg.premiumGeValue || ''}" placeholder="Premium >=" />
+                  <input class="leg-premium-le" style="${leg.strike==='Premium <=' ? '' : 'display:none;'}" value="${leg.premiumLeValue || ''}" placeholder="Premium <=" />
+                  <div class="leg-premium-range" style="${leg.strike==='Premium Range' ? 'display:grid;' : 'display:none;'}">
+                    <input class="leg-range-lower" value="${rangeLower}" placeholder="Lower" />
+                    <input class="leg-range-upper" value="${rangeUpper}" placeholder="Upper" />
+                  </div>
+                  <div class="leg-percent-atm" style="${leg.strike==='% of ATM' ? 'display:grid;' : 'display:none;'}">
+                    <select class="leg-percent-sign"><option ${percentSign==='+'?'selected':''}>+</option><option ${percentSign==='-'?'selected':''}>-</option></select>
+                    <input class="leg-percent-value" value="${percentValue}" placeholder="% value" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="leg-toggle-grid">
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Target Profit</label><label class="switch"><input type="checkbox" data-toggle="target-${idx}" ${leg.targetProfitEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="target-${idx}" style="${leg.targetProfitEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.targetProfitUnit==='Points (Pts)'?'selected':''}>Points (Pts)</option><option ${leg.targetProfitUnit==='Percent (%)'?'selected':''}>Percent (%)</option><option ${leg.targetProfitUnit==='Premium'?'selected':''}>Premium</option></select><input type="number" value="${leg.targetProfitValue || 0}" /></div>
+            </div>
+
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Stop Loss</label><label class="switch"><input type="checkbox" data-toggle="sl-${idx}" ${leg.stopLossEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="sl-${idx}" style="${leg.stopLossEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.stopLossUnit==='Points (Pts)'?'selected':''}>Points (Pts)</option><option ${leg.stopLossUnit==='Percent (%)'?'selected':''}>Percent (%)</option><option ${leg.stopLossUnit==='Premium'?'selected':''}>Premium</option></select><input type="number" value="${leg.stopLossValue || 0}" /></div>
+            </div>
+
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Trail SL</label><label class="switch"><input type="checkbox" data-toggle="trail-${idx}" ${leg.trailSlEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="trail-${idx}" style="${leg.trailSlEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.trailSlUnit==='Points'?'selected':''}>Points</option><option ${leg.trailSlUnit==='Percent'?'selected':''}>Percent</option></select><input type="number" value="${leg.trailSlX || 0}" /><input type="number" value="${leg.trailSlY || 0}" /></div>
+            </div>
+
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Re-entry on Tgt</label><label class="switch"><input type="checkbox" data-toggle="retgt-${idx}" ${leg.reEntryOnTgtEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="retgt-${idx}" style="${leg.reEntryOnTgtEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.reEntryOnTgtTiming==='RE ASAP'?'selected':''}>RE ASAP</option><option ${leg.reEntryOnTgtTiming==='Next Candle'?'selected':''}>Next Candle</option></select><select><option ${String(leg.reEntryOnTgtCount||'1')==='1'?'selected':''}>1</option><option ${String(leg.reEntryOnTgtCount)==='2'?'selected':''}>2</option><option ${String(leg.reEntryOnTgtCount)==='3'?'selected':''}>3</option><option ${String(leg.reEntryOnTgtCount)==='5'?'selected':''}>5</option></select></div>
+            </div>
+
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Re-entry on SL</label><label class="switch"><input type="checkbox" data-toggle="resl-${idx}" ${leg.reEntryOnSlEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="resl-${idx}" style="${leg.reEntryOnSlEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.reEntryOnSlTiming==='RE ASAP'?'selected':''}>RE ASAP</option><option ${leg.reEntryOnSlTiming==='Next Candle'?'selected':''}>Next Candle</option></select><select><option ${String(leg.reEntryOnSlCount||'1')==='1'?'selected':''}>1</option><option ${String(leg.reEntryOnSlCount)==='2'?'selected':''}>2</option><option ${String(leg.reEntryOnSlCount)==='3'?'selected':''}>3</option><option ${String(leg.reEntryOnSlCount)==='5'?'selected':''}>5</option></select></div>
+            </div>
+
+            <div class="leg-toggle-item">
+              <div class="leg-toggle-row"><label>Simple Momentum</label><label class="switch"><input type="checkbox" data-toggle="mom-${idx}" ${leg.simpleMomentumEnabled ? 'checked' : ''} /><span class="slider"></span></label></div>
+              <div class="leg-sub-row" id="mom-${idx}" style="${leg.simpleMomentumEnabled ? 'display:grid;' : 'display:none;'}"><select><option ${leg.simpleMomentumUnit==='Points (Pts) Up'?'selected':''}>Points (Pts) Up</option><option ${leg.simpleMomentumUnit==='Points (Pts) Down'?'selected':''}>Points (Pts) Down</option><option ${leg.simpleMomentumUnit==='Percent (%) Up'?'selected':''}>Percent (%) Up</option><option ${leg.simpleMomentumUnit==='Percent (%) Down'?'selected':''}>Percent (%) Down</option></select><input type="number" value="${leg.simpleMomentumValue || 0}" /></div>
+            </div>
+
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    document.getElementById('legsContainer').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-remove]');
+      if (!btn) return;
+      collectLegSettingsFromDom();
+      const index = Number(btn.dataset.remove);
+      state.legs.splice(index, 1);
+      renderLegs();
+    });
+
+    document.getElementById('legsContainer').addEventListener('change', (event) => {
+      const select = event.target.closest('.leg-strike-criteria');
+      if (!select) return;
+      const wrap = select.closest('.leg-strike-row');
+      if (!wrap) return;
+      const criteria = select.value;
+
+      const strikeType = wrap.querySelector('.leg-strike-type');
+      const closest = wrap.querySelector('.leg-closest-premium');
+      const ge = wrap.querySelector('.leg-premium-ge');
+      const le = wrap.querySelector('.leg-premium-le');
+      const range = wrap.querySelector('.leg-premium-range');
+      const pct = wrap.querySelector('.leg-percent-atm');
+
+      strikeType.style.display = criteria === 'Strike Type' ? 'block' : 'none';
+      closest.style.display = criteria === 'Closest Premium' ? 'block' : 'none';
+      ge.style.display = criteria === 'Premium >=' ? 'block' : 'none';
+      le.style.display = criteria === 'Premium <=' ? 'block' : 'none';
+      range.style.display = criteria === 'Premium Range' ? 'grid' : 'none';
+      pct.style.display = criteria === '% of ATM' ? 'grid' : 'none';
+    });
+
+    function refreshStrikeOffsetOptions() {
+      const select = document.getElementById('strikeOffsetSelect');
+      const options = ['ATM'];
+      for (let i = 1; i <= 20; i += 1) options.push(`ITM ${i}`);
+      for (let i = 1; i <= 20; i += 1) options.push(`OTM ${i}`);
+      select.innerHTML = options.map((opt) => `<option value="${opt}">${opt}</option>`).join('');
+    }
+
+    function toggleStrikeControls() {
+      const criteria = document.getElementById('strikeCriteria').value;
+      const showOffset = criteria === 'Strike Type';
+      const showClosest = criteria === 'Closest Premium';
+      const showGe = criteria === 'Premium >=';
+      const showLe = criteria === 'Premium <=';
+      const showRange = criteria === 'Premium Range';
+      const showPercentAtm = criteria === '% of ATM';
+
+      document.getElementById('strikeOffsetWrap').style.display = showOffset ? 'block' : 'none';
+      document.getElementById('closestPremiumWrap').style.display = showClosest ? 'block' : 'none';
+      document.getElementById('premiumGeWrap').style.display = showGe ? 'block' : 'none';
+      document.getElementById('premiumLeWrap').style.display = showLe ? 'block' : 'none';
+      document.getElementById('premiumRangeLowerWrap').style.display = showRange ? 'block' : 'none';
+      document.getElementById('premiumRangeUpperWrap').style.display = showRange ? 'block' : 'none';
+      document.getElementById('percentAtmSignWrap').style.display = showPercentAtm ? 'block' : 'none';
+      document.getElementById('percentAtmValueWrap').style.display = showPercentAtm ? 'block' : 'none';
+
+      if (showOffset) refreshStrikeOffsetOptions();
+    }
+
+    document.getElementById('indexSelect').addEventListener('change', () => {
+      if (document.getElementById('strikeCriteria').value === 'Strike Type') {
+        refreshStrikeOffsetOptions();
+      }
+    });
+
+    document.getElementById('strikeCriteria').addEventListener('change', toggleStrikeControls);
+    toggleStrikeControls();
+
+    document.getElementById('addLegBtn').addEventListener('click', () => {
+      collectLegSettingsFromDom();
+      const criteria = document.getElementById('strikeCriteria').value;
+      const isStrikeType = criteria === 'Strike Type';
+      const isClosest = criteria === 'Closest Premium';
+      const isGe = criteria === 'Premium >=';
+      const isLe = criteria === 'Premium <=';
+      const isRange = criteria === 'Premium Range';
+      const isPercentAtm = criteria === '% of ATM';
+
+      const closestPremiumValue = document.getElementById('closestPremiumValue').value;
+      const premiumGeValue = document.getElementById('premiumGeValue').value;
+      const premiumLeValue = document.getElementById('premiumLeValue').value;
+      const premiumRangeLower = Number(document.getElementById('premiumRangeLower').value || 0);
+      const premiumRangeUpper = Number(document.getElementById('premiumRangeUpper').value || 0);
+      const percentAtmSign = document.getElementById('percentAtmSign').value;
+      const percentAtmValue = document.getElementById('percentAtmValue').value;
+
+      if (isClosest && !closestPremiumValue) { alert('Enter Closest Premium value'); return; }
+      if (isGe && !premiumGeValue) { alert('Enter Premium >= value'); return; }
+      if (isLe && !premiumLeValue) { alert('Enter Premium <= value'); return; }
+      if (isRange && premiumRangeUpper < premiumRangeLower) { alert('Upper Premium Range must be greater than or equal to Lower Premium Range'); return; }
+      if (isPercentAtm && !percentAtmValue) { alert('Enter % of ATM value'); return; }
+
+      const leg = {
+        segment: activeValue('segment'),
+        lot: document.getElementById('totalLot').value,
+        position: activeValue('position'),
+        optionType: activeValue('optionType'),
+        expiry: document.getElementById('expiry').value,
+        strike: document.getElementById('strikeCriteria').value,
+        strikeSelection: isStrikeType ? document.getElementById('strikeOffsetSelect').value : null,
+        closestPremiumValue: isClosest ? closestPremiumValue : null,
+        premiumGeValue: isGe ? premiumGeValue : null,
+        premiumLeValue: isLe ? premiumLeValue : null,
+        premiumRange: isRange ? `${premiumRangeLower}-${premiumRangeUpper}` : null,
+        percentAtm: isPercentAtm ? `${percentAtmSign}${percentAtmValue}` : null,
+        range: '-'
+      };
+
+      state.legs.push(leg);
+      renderLegs();
+    });
+
+    function collectLegSettingsFromDom() {
+      const cards = Array.from(document.querySelectorAll('#legsContainer .leg-card'));
+      state.legs = cards.map((card, idx) => {
+        const get = (selector) => card.querySelector(selector);
+        const strikeCriteria = get('.leg-strike-criteria')?.value || 'Strike Type';
+        const percentSign = get('.leg-percent-sign')?.value || '+';
+        const percentValue = (get('.leg-percent-value')?.value || '').trim();
+        const lower = (get('.leg-range-lower')?.value || '').trim();
+        const upper = (get('.leg-range-upper')?.value || '').trim();
+        return {
+          ...(state.legs[idx] || {}),
+          lot: get('.leg-lot')?.value || (state.legs[idx]?.lot || 1),
+          position: get('.leg-position')?.value || state.legs[idx]?.position || 'Buy',
+          optionType: get('.leg-option-type')?.value || state.legs[idx]?.optionType || 'Put',
+          expiry: get('.leg-expiry')?.value || state.legs[idx]?.expiry || 'Weekly',
+          strike: strikeCriteria,
+          strikeSelection: get('.leg-strike-type')?.value || null,
+          closestPremiumValue: (get('.leg-closest-premium')?.value || '').trim() || null,
+          premiumGeValue: (get('.leg-premium-ge')?.value || '').trim() || null,
+          premiumLeValue: (get('.leg-premium-le')?.value || '').trim() || null,
+          premiumRange: (lower || upper) ? `${lower}-${upper}` : null,
+          percentAtm: percentValue ? `${percentSign}${percentValue}` : null,
+          targetProfitEnabled: !!get(`input[data-toggle="target-${idx}"]`)?.checked,
+          targetProfitUnit: get(`#target-${idx} select`)?.value || 'Points (Pts)',
+          targetProfitValue: get(`#target-${idx} input[type="number"]`)?.value || '0',
+          stopLossEnabled: !!get(`input[data-toggle="sl-${idx}"]`)?.checked,
+          stopLossUnit: get(`#sl-${idx} select`)?.value || 'Points (Pts)',
+          stopLossValue: get(`#sl-${idx} input[type="number"]`)?.value || '0',
+          trailSlEnabled: !!get(`input[data-toggle="trail-${idx}"]`)?.checked,
+          trailSlUnit: get(`#trail-${idx} select`)?.value || 'Points',
+          trailSlX: get(`#trail-${idx} input:nth-of-type(1)`)?.value || '0',
+          trailSlY: get(`#trail-${idx} input:nth-of-type(2)`)?.value || '0',
+          reEntryOnTgtEnabled: !!get(`input[data-toggle="retgt-${idx}"]`)?.checked,
+          reEntryOnTgtTiming: get(`#retgt-${idx} select:nth-of-type(1)`)?.value || 'RE ASAP',
+          reEntryOnTgtCount: get(`#retgt-${idx} select:nth-of-type(2)`)?.value || '1',
+          reEntryOnSlEnabled: !!get(`input[data-toggle="resl-${idx}"]`)?.checked,
+          reEntryOnSlTiming: get(`#resl-${idx} select:nth-of-type(1)`)?.value || 'RE ASAP',
+          reEntryOnSlCount: get(`#resl-${idx} select:nth-of-type(2)`)?.value || '1',
+          simpleMomentumEnabled: !!get(`input[data-toggle="mom-${idx}"]`)?.checked,
+          simpleMomentumUnit: get(`#mom-${idx} select`)?.value || 'Points (Pts) Up',
+          simpleMomentumValue: get(`#mom-${idx} input[type="number"]`)?.value || '0',
+          rangeBreakoutEnabled: false,
+          rangeBreakoutTime: null,
+          rangeBreakoutHL: null,
+          rangeBreakoutRef: null
+        };
+      });
+    }
+
+    function buildPayload() {
+      collectLegSettingsFromDom();
+      const title = document.getElementById('strategyTitle').textContent.trim();
+      return {
+        strategy_id: state.strategyId || null,
+        strategyName: title,
+        strategyDescription: document.getElementById('strategyDescription').textContent.trim(),
+        index: document.getElementById('indexSelect').value,
+        underlying: activeValue('underlying'),
+        strategyType: activeValue('strategyType'),
+        entryTime: document.getElementById('entryTime').value,
+        exitTime: document.getElementById('exitTime').value,
+        noEntryAfterEnabled: document.getElementById('noEntryAfterToggle').checked,
+        noEntryAfterTime: document.getElementById('noEntryAfterToggle').checked ? document.getElementById('noEntryAfterTime').value : null,
+        overallMomentumEnabled: document.getElementById('overallMomentumToggle').checked,
+        overallMomentumType: document.getElementById('overallMomentumToggle').checked ? document.getElementById('overallMomentumType').value : null,
+        overallMomentumValue: document.getElementById('overallMomentumToggle').checked ? document.getElementById('overallMomentumValue').value : null,
+        squareOff: activeValue('squareOff'),
+        trailSlToBreakeven: document.getElementById('trailSl').checked,
+        trailScope: activeValue('trailScope'),
+        legs: state.legs
+      };
+    }
+
+    function validateStrategyMeta() {
+      const title = document.getElementById('strategyTitle').textContent.trim();
+      if (!title || title.toLowerCase() === 'backtest builder') {
+        alert('Strategy name is required. Create strategy from Strategy Builder popup.');
+        return false;
+      }
+      return true;
+    }
+
+    const noEntryAfterToggle = document.getElementById('noEntryAfterToggle');
+    const noEntryAfterRow = document.getElementById('noEntryAfterRow');
+    const overallMomentumToggle = document.getElementById('overallMomentumToggle');
+    const overallMomentumRow = document.getElementById('overallMomentumRow');
+    noEntryAfterToggle.addEventListener('change', () => {
+      noEntryAfterRow.style.display = noEntryAfterToggle.checked ? 'flex' : 'none';
+    });
+    overallMomentumToggle.addEventListener('change', () => {
+      overallMomentumRow.style.display = overallMomentumToggle.checked ? 'flex' : 'none';
+    });
+
+    async function postJson(url, payload) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.message || 'Request failed');
+      }
+      return data;
+    }
+
+
+    function setExecutionStatus(message) {
+      const el = document.getElementById('executionStatusText');
+      if (el) el.textContent = `Execution: ${message}`;
+    }
+
+    async function refreshExecutionStatus() {
+      try {
+        const qs = state.strategyId ? `?strategy_id=${encodeURIComponent(state.strategyId)}` : '';
+        const response = await fetch('/api/execution/status' + qs);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.running) {
+          setExecutionStatus(`Running${data.strategy_name ? ` (${data.strategy_name})` : ''}`);
+        } else if (data.last_error) {
+          setExecutionStatus(`Failed (${data.last_error})`);
+        } else {
+          setExecutionStatus(data.last_message || 'Idle');
+        }
+      } catch (_) {}
+    }
+
+    document.getElementById('saveStrategyBtn').addEventListener('click', async () => {
+      if (!validateStrategyMeta()) return;
+      const payload = buildPayload();
+      try {
+        const saveData = await postJson('/api/strategy/save', payload);
+        if (saveData.strategy_id) state.strategyId = saveData.strategy_id;
+        localStorage.setItem('kotak_builder_strategy', JSON.stringify(payload));
+        alert('Strategy saved successfully.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    document.getElementById('startBacktestBtn').addEventListener('click', async () => {
+      if (!validateStrategyMeta()) return;
+      if (state.legs.length === 0) {
+        alert('Add at least one leg before starting execution.');
+        return;
+      }
+      try {
+        // Ensure execution is always linked to saved strategy_id (for dashboard toggle stability).
+        const payload = buildPayload();
+        const saveData = await postJson('/api/strategy/save', payload);
+        if (saveData.strategy_id) state.strategyId = saveData.strategy_id;
+        await postJson('/api/strategy/toggle', { strategy_id: state.strategyId, enabled: true });
+        localStorage.setItem('kotak_builder_last_backtest', JSON.stringify(buildPayload()));
+        await refreshExecutionStatus();
+        alert('Execution started.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    document.getElementById('stopExecutionBtn').addEventListener('click', async () => {
+      try {
+        if (state.strategyId) {
+          await postJson('/api/strategy/toggle', { strategy_id: state.strategyId, enabled: false });
+        } else {
+          await postJson('/api/execution/stop', {});
+        }
+        await refreshExecutionStatus();
+        alert('Execution stop requested.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+
+    function setTrailScopeEnabled(enabled) {
+      const group = document.getElementById('trailScopeGroup');
+      if (!group) return;
+      group.classList.toggle('disabled', !enabled);
+      group.querySelectorAll('.seg').forEach((btn) => {
+        btn.disabled = !enabled;
+      });
+    }
+
+    const trailSl = document.getElementById('trailSl');
+    setTrailScopeEnabled(trailSl.checked);
+    trailSl.addEventListener('change', () => {
+      setTrailScopeEnabled(trailSl.checked);
+    });
+
+
+    document.getElementById('legsContainer').addEventListener('change', (event) => {
+      const toggle = event.target.closest('input[data-toggle]');
+      if (!toggle) return;
+      const targetId = toggle.getAttribute('data-toggle');
+      const row = document.getElementById(targetId);
+      if (!row) return;
+      row.style.display = toggle.checked ? 'grid' : 'none';
+    });
+
+    if (!isNewStrategy && initialStrategyPayload && Array.isArray(initialStrategyPayload.legs)) {
+      state.strategyId = initialStrategyPayload.strategy_id || state.strategyId;
+      state.legs = initialStrategyPayload.legs;
+      if (initialStrategyPayload.index) document.getElementById('indexSelect').value = initialStrategyPayload.index;
+      if (initialStrategyPayload.entryTime) document.getElementById('entryTime').value = initialStrategyPayload.entryTime;
+      if (initialStrategyPayload.exitTime) document.getElementById('exitTime').value = initialStrategyPayload.exitTime;
+      renderLegs();
+    } else {
+      // New strategy flow: start clean and do not preload previous strategy legs.
+      state.legs = [];
+      renderLegs();
+      localStorage.removeItem('kotak_builder_strategy');
+    }
+
+    let statusTimer = null;
+    function startStatusLoop() {
+      if (statusTimer) return;
+      statusTimer = setInterval(() => {
+        if (!document.hidden) refreshExecutionStatus();
+      }, 5000);
+    }
+    function stopStatusLoop() {
+      if (!statusTimer) return;
+      clearInterval(statusTimer);
+      statusTimer = null;
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopStatusLoop();
+      else {
+        refreshExecutionStatus();
+        startStatusLoop();
+      }
+    });
+    refreshExecutionStatus();
+    startStatusLoop();
+  </script>
+</body>
+</html>
+

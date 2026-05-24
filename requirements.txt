@@ -1,0 +1,4 @@
+Flask==3.0.3
+neo_api_client
+python-dotenv
+python-telegram-bot==21.6

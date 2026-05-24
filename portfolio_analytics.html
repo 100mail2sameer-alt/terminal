@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio & Analytics</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="dashboard-page">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">kotak</div>
+      <input class="search" type="text" placeholder="Search strategies, assets, or symbols..." />
+      <div class="ticker">
+        <div>NIFTY: {{ nifty_value }} <span class="{{ nifty_tone }}">{{ nifty_change }}</span> | ATM: {{ nifty_atm }}</div>
+        <div>BANKNIFTY: {{ banknifty_value }} <span class="{{ banknifty_tone }}">{{ banknifty_change }}</span> | ATM: {{ banknifty_atm }}</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="nav-item nav-link" href="/home">Dashboard</a>
+        <a class="nav-item nav-link" href="/strategy-builder">Strategy Builder</a>
+        <div class="nav-item active">Portfolio & Analytics</div>
+        <div class="nav-item">Historical Performance</div>
+      </aside>
+
+      <main class="content">
+        <div class="title-row">
+          <h1>Portfolio & Analytics</h1>
+          <a class="create-btn create-link" href="/home">Back to Dashboard</a>
+        </div>
+
+        {% if portfolio_error %}
+          <section class="panel"><p>{{ portfolio_error }}</p></section>
+        {% else %}
+          <section class="main-grid">
+            <div>
+              <section class="panel">
+                <h3 class="panel-title">Portfolio Summary</h3>
+                <p>Total Holding Value: <strong>Rs{{ '%.2f'|format(total_holding_value) }}</strong></p>
+                <p>Total Position MTM: <strong>Rs{{ '%.2f'|format(total_position_mtm) }}</strong></p>
+                <p>Holdings Count: <strong>{{ holdings|length }}</strong></p>
+                <p>Positions Count: <strong>{{ positions|length }}</strong></p>
+              </section>
+
+              <section class="panel">
+                <h3 class="panel-title">Important Analytics</h3>
+                <p>Margin Available:
+                  <strong>
+                    {{ limits.margin_available or limits.available_margin or limits.availableMargin or limits.cash_available or limits.cashAvailable or '--' }}
+                  </strong>
+                </p>
+                <p>Used Margin:
+                  <strong>
+                    {{ limits.used_margin or limits.utilized_margin or limits.utilizedMargin or '--' }}
+                  </strong>
+                </p>
+                <p>Opening Balance:
+                  <strong>
+                    {{ limits.opening_balance or limits.openingBalance or '--' }}
+                  </strong>
+                </p>
+                <p>Payin:
+                  <strong>
+                    {{ limits.payin or limits.pay_in or '--' }}
+                  </strong>
+                </p>
+                <p>Payout:
+                  <strong>
+                    {{ limits.payout or limits.pay_out or '--' }}
+                  </strong>
+                </p>
+                <p>Collateral:
+                  <strong>
+                    {{ limits.collateral or limits.collateral_value or '--' }}
+                  </strong>
+                </p>
+              </section>
+            </div>
+
+            <div style="grid-column: span 3;">
+              <section class="panel" id="holdingsTab">
+                <h3 class="panel-title">Holdings</h3>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                  <button type="button" class="btn-primary" id="showHoldingsBtn">Holdings</button>
+                  <button type="button" class="btn-secondary" id="showPositionsBtn">Positions</button>
+                </div>
+                <table>
+                  <thead><tr><th>Symbol</th><th>Qty</th><th>LTP</th><th>Value</th></tr></thead>
+                  <tbody>
+                    {% for row in holdings %}
+                      <tr>
+                        <td>{{ row.trading_symbol or row.symbol or row.tsym or '--' }}</td>
+                        <td>{{ row.quantity or row.qty or row.holdingQuantity or '--' }}</td>
+                        <td>{{ row.ltp or row.lastPrice or row.last_traded_price or '--' }}</td>
+                        <td>{{ row.pnl or row.value or '--' }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </section>
+
+              <section class="panel" id="positionsTab" style="display:none;">
+                <h3 class="panel-title">Positions</h3>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                  <button type="button" class="btn-secondary" id="showHoldingsBtn2">Holdings</button>
+                  <button type="button" class="btn-primary" id="showPositionsBtn2">Positions</button>
+                </div>
+                <table>
+                  <thead><tr><th>Symbol</th><th>Net Qty</th><th>Avg Price</th><th>MTM / PnL</th></tr></thead>
+                  <tbody>
+                    {% for row in positions %}
+                      <tr>
+                        <td>{{ row.trading_symbol or row.symbol or row.tsym or '--' }}</td>
+                        <td>{{ row.net_quantity or row.netQty or row.quantity or '--' }}</td>
+                        <td>{{ row.average_price or row.avgPrice or row.price or '--' }}</td>
+                        <td>{{ row.mtm or row.pnl or row.dayMtm or '--' }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </section>
+        {% endif %}
+      </main>
+    </div>
+  </div>
+  <script>
+    const holdingsTab = document.getElementById('holdingsTab');
+    const positionsTab = document.getElementById('positionsTab');
+    const showHoldingsBtn = document.getElementById('showHoldingsBtn');
+    const showPositionsBtn = document.getElementById('showPositionsBtn');
+    const showHoldingsBtn2 = document.getElementById('showHoldingsBtn2');
+    const showPositionsBtn2 = document.getElementById('showPositionsBtn2');
+
+    function showHoldings() {
+      holdingsTab.style.display = 'block';
+      positionsTab.style.display = 'none';
+    }
+
+    function showPositions() {
+      holdingsTab.style.display = 'none';
+      positionsTab.style.display = 'block';
+    }
+
+    if (showHoldingsBtn) showHoldingsBtn.addEventListener('click', showHoldings);
+    if (showPositionsBtn) showPositionsBtn.addEventListener('click', showPositions);
+    if (showHoldingsBtn2) showHoldingsBtn2.addEventListener('click', showHoldings);
+    if (showPositionsBtn2) showPositionsBtn2.addEventListener('click', showPositions);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kotak Algo Dashboard</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="dashboard-page">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">kotak</div>
+      <input class="search" type="text" placeholder="Search strategies, assets, or symbols..." />
+      <div class="ticker">
+        <div>NIFTY: <span id="niftyValue">{{ nifty_value }}</span> <span id="niftyChange" class="{{ nifty_tone }}">{{ nifty_change }}</span> | ATM: <span id="niftyAtm">{{ nifty_atm }}</span></div>
+        <div>BANKNIFTY: <span id="bankniftyValue">{{ banknifty_value }}</span> <span id="bankniftyChange" class="{{ banknifty_tone }}">{{ banknifty_change }}</span> | ATM: <span id="bankniftyAtm">{{ banknifty_atm }}</span></div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="nav-item active">Dashboard</div>
+        <a class="nav-item nav-link" href="/strategy-builder">Strategy Builder</a>
+        <a class="nav-item nav-link" href="/portfolio-analytics">Portfolio & Analytics</a>
+        <div class="nav-item">Historical Performance</div>
+      </aside>
+
+      <main class="content">
+        <div class="title-row">
+          <a class="create-btn create-link" href="/strategy-builder?open=1">+ Create New Strategy</a>
+        </div>
+
+        <section class="main-grid strategy-layout">
+          <div class="strategies-col" id="strategiesList"></div>
+          <div>
+            <section class="panel">
+              <h3 class="panel-title">Equity Curve Chart</h3>
+              <div class="chart"></div>
+            </section>
+            <section class="panel">
+              <h3 class="panel-title">Live Order Book</h3>
+              <table>
+                <thead><tr><th>Time</th><th>Symbol</th><th>Entry</th><th>P&L</th></tr></thead>
+                <tbody>
+                  <tr><td>13:30</td><td>22,500</td><td>1,230</td><td class="g">8,000</td></tr>
+                  <tr><td>13:30</td><td>22,500</td><td>1,230</td><td class="g">1,000</td></tr>
+                  <tr><td>13:30</td><td>22,500</td><td>1,230</td><td class="g">6,000</td></tr>
+                  <tr><td>13:30</td><td>22,500</td><td>1,230</td><td class="g">3,500</td></tr>
+                  <tr><td>13:30</td><td>23,500</td><td>1,230</td><td class="g">1,300</td></tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script>
+    let uiRunningStrategyIds = new Set();
+
+    function formatIst(isoValue) {
+      if (!isoValue) return '-';
+      try {
+        const dt = new Date(isoValue);
+        return dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+      } catch (_) {
+        return isoValue;
+      }
+    }
+
+    async function fetchStrategies() {
+      const resp = await fetch('/api/strategy/list', { cache: 'no-store' });
+      if (!resp.ok) return null;
+      return resp.json();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function strategyCardHtml(row, isActive) {
+      const safeName = escapeHtml(row.strategy_name || 'Unnamed Strategy');
+      const safeDesc = escapeHtml(row.strategy_description || '-');
+      const savedAt = formatIst(row.saved_at);
+      const lastDeployed = formatIst(row.last_deployed);
+      const pnl = escapeHtml(row.today_pnl || 'Rs0.00');
+      const sid = escapeHtml(row.strategy_id || '');
+      return `
+        <article class="strategy" data-strategy-id="${sid}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <h3>${safeName}</h3>
+            <label class="switch">
+              <input type="checkbox" class="strategy-toggle" data-strategy-id="${sid}" ${isActive ? 'checked' : ''} />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p>Saved: ${savedAt}</p>
+          <p>${safeDesc}</p>
+          <div class="strategy-live-info" style="${isActive ? '' : 'display:none;'}">
+            <p class="pnl-up">Today P&L: ${pnl}</p>
+            <p>Last Deployed: ${lastDeployed}</p>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <a class="btn-secondary create-link" href="/backtest-builder?strategy_id=${sid}">Edit Full</a>
+            <button class="btn-secondary edit-strategy-btn" type="button" data-strategy-id="${sid}" data-strategy-name="${encodeURIComponent(row.strategy_name || 'Unnamed Strategy')}" data-strategy-description="${encodeURIComponent(row.strategy_description || '')}">Edit</button>
+            <button class="btn-secondary delete-strategy-btn" type="button" data-strategy-id="${sid}">Delete</button>
+          </div>
+        </article>
+      `;
+    }
+
+    async function renderStrategies() {
+      const target = document.getElementById('strategiesList');
+      if (!target) return;
+      try {
+        const data = await fetchStrategies();
+        if (!data || !data.ok) {
+          target.innerHTML = '<article class="strategy"><p>Unable to load strategies.</p></article>';
+          return;
+        }
+        const rows = Array.isArray(data.strategies) ? data.strategies : [];
+        if (!rows.length) {
+          target.innerHTML = '<article class="strategy"><h3>No saved strategies</h3><p>Create one from Strategy Builder.</p></article>';
+          return;
+        }
+        const runningIds = Array.isArray(data.running_strategy_ids) ? data.running_strategy_ids : [];
+        const enabledIds = Array.isArray(data.enabled_strategy_ids) ? data.enabled_strategy_ids : [];
+        uiRunningStrategyIds = new Set(enabledIds);
+        const runningSet = new Set(runningIds);
+        target.innerHTML = rows.map((row) => strategyCardHtml(row, uiRunningStrategyIds.has(row.strategy_id) || runningSet.has(row.strategy_id))).join('');
+      } catch (_) {
+        target.innerHTML = '<article class="strategy"><p>Unable to load strategies.</p></article>';
+      }
+    }
+
+    async function toggleStrategy(strategyId, enabled) {
+      const resp = await fetch('/api/strategy/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ strategy_id: strategyId, enabled })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.ok === false) {
+        throw new Error(data.message || 'Toggle failed');
+      }
+      return data;
+    }
+
+    async function editStrategy(strategyId, strategyName, strategyDescription) {
+      const newName = prompt('Edit strategy name', strategyName || '');
+      if (newName === null) return;
+      const trimmedName = newName.trim();
+      if (!trimmedName) {
+        alert('Strategy name is required.');
+        return;
+      }
+      const newDescription = prompt('Edit strategy description', strategyDescription || '');
+      if (newDescription === null) return;
+      const resp = await fetch('/api/strategy/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          strategy_id: strategyId,
+          strategy_name: trimmedName,
+          strategy_description: newDescription.trim()
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.ok === false) {
+        throw new Error(data.message || 'Edit failed');
+      }
+    }
+
+    async function refreshLiveQuotes() {
+      try {
+        const resp = await fetch('/quotes-live', { cache: 'no-store' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const nv = document.getElementById('niftyValue');
+        const nc = document.getElementById('niftyChange');
+        const bv = document.getElementById('bankniftyValue');
+        const bc = document.getElementById('bankniftyChange');
+        const na = document.getElementById('niftyAtm');
+        const ba = document.getElementById('bankniftyAtm');
+
+        if (nv) nv.textContent = data.nifty_value || '--';
+        if (nc) { nc.textContent = data.nifty_change || '(--%)'; nc.className = data.nifty_tone || 'neutral'; }
+        if (bv) bv.textContent = data.banknifty_value || '--';
+        if (bc) { bc.textContent = data.banknifty_change || '(--%)'; bc.className = data.banknifty_tone || 'neutral'; }
+        if (na) na.textContent = data.nifty_atm || '--';
+        if (ba) ba.textContent = data.banknifty_atm || '--';
+      } catch (_) {}
+    }
+
+    document.addEventListener('change', async (event) => {
+      const toggle = event.target.closest('.strategy-toggle');
+      if (!toggle) return;
+      const strategyId = toggle.getAttribute('data-strategy-id');
+      const enabled = !!toggle.checked;
+      try {
+        if (enabled) uiRunningStrategyIds.add(strategyId);
+        else uiRunningStrategyIds.delete(strategyId);
+        await toggleStrategy(strategyId, enabled);
+        await renderStrategies();
+      } catch (error) {
+        toggle.checked = !enabled;
+        if (!enabled) uiRunningStrategyIds.add(strategyId);
+        else uiRunningStrategyIds.delete(strategyId);
+        alert(error.message);
+      }
+    });
+
+    document.addEventListener('click', async (event) => {
+      const delBtn = event.target.closest('.delete-strategy-btn');
+      if (delBtn) {
+        const strategyId = delBtn.getAttribute('data-strategy-id');
+        if (!confirm('Delete this strategy?')) return;
+        try {
+          const resp = await fetch('/api/strategy/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ strategy_id: strategyId })
+          });
+          const data = await resp.json();
+          if (!resp.ok || data.ok === false) throw new Error(data.message || 'Delete failed');
+          await renderStrategies();
+        } catch (error) {
+          alert(error.message);
+        }
+        return;
+      }
+
+      const btn = event.target.closest('.edit-strategy-btn');
+      if (!btn) return;
+      const strategyId = btn.getAttribute('data-strategy-id');
+      const strategyName = decodeURIComponent(btn.getAttribute('data-strategy-name') || '');
+      const strategyDescription = decodeURIComponent(btn.getAttribute('data-strategy-description') || '');
+      try {
+        await editStrategy(strategyId, strategyName, strategyDescription);
+        await renderStrategies();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    let refreshTimer = null;
+
+    async function refreshAll() {
+      if (document.hidden) return;
+      await Promise.allSettled([refreshLiveQuotes(), renderStrategies()]);
+    }
+
+    function startRefreshLoop() {
+      if (refreshTimer) return;
+      refreshTimer = setInterval(refreshAll, 3000);
+    }
+
+    function stopRefreshLoop() {
+      if (!refreshTimer) return;
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopRefreshLoop();
+      } else {
+        refreshAll();
+        startRefreshLoop();
+      }
+    });
+
+    refreshAll();
+    startRefreshLoop();
+  </script>
+</body>
+</html>
+
